@@ -4,7 +4,7 @@ import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card } from '../ui/Card';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Heart, Send } from 'lucide-react';
 
 export const Prova2View = () => {
   const { socket } = useSocket();
@@ -26,18 +26,23 @@ export const Prova2View = () => {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Sparkles className="text-pink-500 mb-4" size={48} />
-        <h2 className="text-xl font-bold text-pink-600 mb-2">Enviat!</h2>
-        <p className="text-gray-600 text-center">Esperant la puntuacio de l'admin...</p>
+      <div className="flex flex-col items-center justify-center py-16 animate-bounce-in">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 flex items-center justify-center mb-4 shadow-lg">
+          <Sparkles className="text-white" size={28} />
+        </div>
+        <h2 className="text-xl font-bold text-rosa-600 mb-2">Enviat!</h2>
+        <p className="text-rosa-400 text-center">Esperant la puntuacio de l'admin...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-center text-pink-600">Prova 2: Coctel Raquel</h2>
-      <p className="text-center text-gray-600">Crea un coctel inspirat en la Raquel!</p>
+    <div className="space-y-5 animate-slide-up">
+      <div className="text-center">
+        <Heart className="inline text-rosa-400 mb-2" size={24} />
+        <h2 className="text-2xl font-extrabold text-gradient">Coctel Raquel</h2>
+        <p className="text-rosa-400 mt-1">Crea un coctel inspirat en la Raquel!</p>
+      </div>
 
       <Card>
         <div className="space-y-4">
@@ -49,9 +54,9 @@ export const Prova2View = () => {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descripcio</label>
+            <label className="block text-sm font-semibold text-rosa-600 mb-1.5">Descripcio</label>
             <textarea
-              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 rounded-2xl border border-rosa-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-rosa-400 focus:border-transparent resize-none placeholder:text-rosa-300 transition-all"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -59,7 +64,8 @@ export const Prova2View = () => {
             />
           </div>
 
-          <Button onClick={handleSubmit} disabled={!cocktailName.trim()} className="w-full">
+          <Button onClick={handleSubmit} disabled={!cocktailName.trim()} className="w-full" size="lg">
+            <Send size={18} className="inline mr-2" />
             Enviar
           </Button>
         </div>

@@ -27,11 +27,13 @@ export const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-svh flex flex-col items-center justify-center p-6 bg-gray-50">
-      <div className="w-full max-w-sm">
+    <div className="min-h-svh flex flex-col items-center justify-center p-6 bg-festa">
+      <div className="w-full max-w-sm animate-slide-up">
         <div className="text-center mb-8">
-          <Shield className="mx-auto mb-4 text-pink-500" size={48} />
-          <h1 className="text-2xl font-bold">Admin Panel</h1>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 mb-4 shadow-lg">
+            <Shield className="text-white" size={32} />
+          </div>
+          <h1 className="text-2xl font-extrabold text-gradient">Admin Panel</h1>
         </div>
 
         <div className="space-y-4">
@@ -43,9 +45,9 @@ export const AdminLoginPage = () => {
             onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
           />
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-sm text-red-500 text-center font-medium">{error}</p>}
 
-          <Button onClick={handleLogin} disabled={loading || !password.trim()} className="w-full">
+          <Button onClick={handleLogin} disabled={loading || !password.trim()} className="w-full" size="lg">
             {loading ? 'Entrant...' : 'Entrar'}
           </Button>
         </div>

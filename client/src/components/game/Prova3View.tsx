@@ -4,7 +4,7 @@ import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card } from '../ui/Card';
-import { Eye, CheckCircle } from 'lucide-react';
+import { Eye, CheckCircle, Send } from 'lucide-react';
 
 export const Prova3View = () => {
   const { socket } = useSocket();
@@ -50,25 +50,37 @@ export const Prova3View = () => {
 
   if (results) {
     return (
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-center text-pink-600">Resultats Prova 3</h2>
-        <Card className="text-center">
-          <p className="text-3xl font-bold text-pink-600 mb-2">{results.score} punts</p>
+      <div className="space-y-4 animate-slide-up">
+        <div className="text-center">
+          <h2 className="text-2xl font-extrabold text-gradient">Resultats Prova 3</h2>
+        </div>
+        <Card className="text-center animate-bounce-in">
+          <p className="text-4xl font-extrabold text-gradient mb-1">{results.score}</p>
+          <p className="text-rosa-400">punts</p>
         </Card>
-        <div className="space-y-2">
-          {results.correctAnswers.map((ca) => (
-            <Card key={ca.number}>
-              <div className="flex justify-between items-center">
-                <span className="font-bold">Coctel #{ca.number}</span>
-                <span className="text-green-600">{ca.correctName}</span>
-              </div>
-              {guesses[ca.number] && (
-                <p className="text-sm text-gray-500 mt-1">
-                  La teva resposta: {guesses[ca.number]}
-                </p>
-              )}
-            </Card>
-          ))}
+        <div className="space-y-2 stagger">
+          {results.correctAnswers.map((ca) => {
+            const myGuess = guesses[ca.number]?.trim().toLowerCase();
+            const correct = myGuess === ca.correctName.trim().toLowerCase();
+            return (
+              <Card key={ca.number}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-rosa-100 flex items-center justify-center text-sm font-bold text-rosa-500">
+                      {ca.number}
+                    </span>
+                    <span className="font-bold text-rosa-600">{ca.correctName}</span>
+                  </div>
+                  {correct && <CheckCircle size={20} className="text-green-500" />}
+                </div>
+                {guesses[ca.number] && (
+                  <p className={`text-sm mt-1 ml-10 ${correct ? 'text-green-500' : 'text-gray-400 line-through'}`}>
+                    {guesses[ca.number]}
+                  </p>
+                )}
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
@@ -76,42 +88,54 @@ export const Prova3View = () => {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <CheckCircle className="text-green-500 mb-4" size={48} />
-        <h2 className="text-xl font-bold text-pink-600 mb-2">Respostes enviades!</h2>
-        <p className="text-gray-600">Esperant els resultats...</p>
+      <div className="flex flex-col items-center justify-center py-16 animate-bounce-in">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center mb-4 shadow-lg">
+          <CheckCircle className="text-white" size={28} />
+        </div>
+        <h2 className="text-xl font-bold text-rosa-600 mb-2">Respostes enviades!</h2>
+        <p className="text-rosa-400">Esperant els resultats...</p>
       </div>
     );
   }
 
   if (cocktailNumbers.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Eye className="text-pink-400 mb-4 animate-pulse" size={48} />
-        <p className="text-gray-600 text-center">Esperant que l'admin prepari el tast a cegues...</p>
+      <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+        <div className="w-16 h-16 rounded-full bg-rosa-100 flex items-center justify-center mb-4 animate-pulse-glow">
+          <Eye className="text-rosa-500" size={32} />
+        </div>
+        <p className="text-rosa-400 text-center text-lg">Esperant que l'admin prepari el tast...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-center text-pink-600">Prova 3: Tast a cegues</h2>
-      <p className="text-center text-gray-600">Endevina el nom de cada coctel!</p>
+    <div className="space-y-5 animate-slide-up">
+      <div className="text-center">
+        <Eye className="inline text-lila-400 mb-2" size={24} />
+        <h2 className="text-2xl font-extrabold text-gradient">Tast a cegues</h2>
+        <p className="text-rosa-400 mt-1">Endevina el nom de cada coctel!</p>
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 stagger">
         {cocktailNumbers.map((num) => (
           <Card key={num}>
-            <Input
-              label={`Coctel #${num}`}
-              value={guesses[num] || ''}
-              onChange={(e) => setGuesses((prev) => ({ ...prev, [num]: e.target.value }))}
-              placeholder="Nom del coctel..."
-            />
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 flex items-center justify-center text-white font-bold shrink-0">
+                {num}
+              </span>
+              <Input
+                value={guesses[num] || ''}
+                onChange={(e) => setGuesses((prev) => ({ ...prev, [num]: e.target.value }))}
+                placeholder="Nom del coctel..."
+              />
+            </div>
           </Card>
         ))}
       </div>
 
       <Button onClick={handleSubmit} className="w-full" size="lg">
+        <Send size={18} className="inline mr-2" />
         Enviar respostes
       </Button>
     </div>

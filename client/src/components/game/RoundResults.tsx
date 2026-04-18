@@ -1,6 +1,6 @@
 import { useGame } from '../../context/GameContext';
 import { Card } from '../ui/Card';
-import { Trophy } from 'lucide-react';
+import { Trophy, Sparkles } from 'lucide-react';
 import type { GameMode } from '../../types';
 
 interface RoundResultsProps {
@@ -27,22 +27,32 @@ export const RoundResults = ({ mode }: RoundResultsProps) => {
   const sorted = [...teams].sort((a, b) => getScore(b) - getScore(a));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 animate-slide-up">
       <div className="text-center">
-        <Trophy className="mx-auto text-yellow-500 mb-2" size={36} />
-        <h2 className="text-2xl font-bold text-pink-600">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-gold-400 to-gold-500 mb-3 shadow-lg animate-bounce-in">
+          <Trophy className="text-white" size={28} />
+        </div>
+        <h2 className="text-2xl font-extrabold text-gradient">
           {mode === 'cocktails' ? 'Resultats Coctels' : 'Resultats Bingo'}
         </h2>
-        <p className="text-gray-500 text-sm mt-1">Esperant que l'admin continui...</p>
+        <div className="flex items-center justify-center gap-2 mt-2 text-rosa-400">
+          <Sparkles size={14} />
+          <span className="text-sm">Esperant que l'admin continui...</span>
+          <Sparkles size={14} />
+        </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 stagger">
         {sorted.map((team, i) => (
-          <Card key={team._id}>
+          <Card key={team._id} className={i === 0 ? 'ring-2 ring-gold-400 ring-offset-2' : ''}>
             <div className="flex items-center gap-3">
-              <span className="text-xl font-bold text-gray-400 w-8">{i + 1}</span>
-              <span className="flex-1 font-semibold">{team.name}</span>
-              <span className="text-xl font-bold text-pink-600">{getScore(team)}</span>
+              <span className={`text-xl font-extrabold w-8 text-center ${
+                i === 0 ? 'text-gold-500' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-amber-600' : 'text-rosa-300'
+              }`}>
+                {i + 1}
+              </span>
+              <span className="flex-1 font-bold">{team.name}</span>
+              <span className="text-2xl font-extrabold text-gradient">{getScore(team)}</span>
             </div>
           </Card>
         ))}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSocket } from '../../context/SocketContext';
 import { Card } from '../ui/Card';
-import { GlassWater } from 'lucide-react';
+import { GlassWater, Sparkles } from 'lucide-react';
 
 export const Prova1View = () => {
   const { socket } = useSocket();
@@ -21,9 +21,11 @@ export const Prova1View = () => {
 
   if (!assignment) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <GlassWater className="text-pink-400 mb-4 animate-pulse" size={48} />
-        <p className="text-gray-600 text-center">
+      <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+        <div className="w-16 h-16 rounded-full bg-rosa-100 flex items-center justify-center mb-4 animate-pulse-glow">
+          <GlassWater className="text-rosa-500" size={32} />
+        </div>
+        <p className="text-rosa-400 text-center text-lg">
           Esperant que l'admin assigni els coctels...
         </p>
       </div>
@@ -31,28 +33,31 @@ export const Prova1View = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-center text-pink-600">Prova 1: Recrea el coctel</h2>
+    <div className="space-y-5 animate-slide-up">
+      <div className="text-center">
+        <Sparkles className="inline text-gold-400 mb-2" size={24} />
+        <h2 className="text-2xl font-extrabold text-gradient">Recrea el coctel!</h2>
+      </div>
 
       <Card className="text-center">
-        <GlassWater className="mx-auto text-pink-500 mb-3" size={36} />
-        <h3 className="text-xl font-bold mb-4">{assignment.name}</h3>
+        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <GlassWater className="text-white" size={28} />
+        </div>
+        <h3 className="text-2xl font-extrabold text-rosa-600 mb-5">{assignment.name}</h3>
 
-        <div>
-          <p className="text-sm text-gray-500 mb-2">Ingredients:</p>
-          <ul className="space-y-1">
-            {assignment.ingredients.map((ing, i) => (
-              <li key={i} className="bg-pink-50 rounded-lg px-3 py-1.5 text-pink-700">
-                {ing}
-              </li>
-            ))}
-          </ul>
+        <p className="text-sm font-semibold text-rosa-400 mb-3 uppercase tracking-wide">Ingredients</p>
+        <div className="space-y-2">
+          {assignment.ingredients.map((ing, i) => (
+            <div
+              key={i}
+              className="bg-gradient-to-r from-rosa-50 to-lila-50 rounded-xl px-4 py-2.5 text-rosa-700 font-medium border border-rosa-100"
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
+              {ing}
+            </div>
+          ))}
         </div>
       </Card>
-
-      <p className="text-sm text-gray-500 text-center">
-        Recrea aquest coctel amb els ingredients indicats!
-      </p>
     </div>
   );
 };

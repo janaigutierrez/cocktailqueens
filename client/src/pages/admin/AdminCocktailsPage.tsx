@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
-import { ArrowLeft, Plus, Trash2, Edit3 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit3, Wine } from 'lucide-react';
 
 export const AdminCocktailsPage = () => {
   const navigate = useNavigate();
@@ -18,10 +18,7 @@ export const AdminCocktailsPage = () => {
   const [ingredients, setIngredients] = useState<string[]>(['']);
 
   useEffect(() => {
-    if (!adminService.isLoggedIn()) {
-      navigate('/admin');
-      return;
-    }
+    if (!adminService.isLoggedIn()) { navigate('/admin'); return; }
     loadCocktails();
   }, [navigate]);
 
@@ -33,13 +30,11 @@ export const AdminCocktailsPage = () => {
   const handleSave = async () => {
     const filtered = ingredients.filter((i) => i.trim());
     if (!name.trim() || filtered.length === 0) return;
-
     if (editingId) {
       await cocktailService.update(editingId, { name, ingredients: filtered });
     } else {
       await cocktailService.create({ name, ingredients: filtered });
     }
-
     closeModal();
     loadCocktails();
   };
@@ -63,95 +58,77 @@ export const AdminCocktailsPage = () => {
     setIngredients(['']);
   };
 
-  const addIngredient = () => setIngredients([...ingredients, '']);
-  const removeIngredient = (idx: number) =>
-    setIngredients(ingredients.filter((_, i) => i !== idx));
-  const updateIngredient = (idx: number, val: string) =>
-    setIngredients(ingredients.map((ing, i) => (i === idx ? val : ing)));
-
   return (
-    <div className="min-h-svh bg-gray-50">
-      <header className="bg-white shadow-sm p-4 flex items-center gap-3">
-        <Link to="/admin/dashboard" className="p-2 hover:bg-gray-100 rounded-lg">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="font-bold text-pink-600">Coctels</h1>
+    <div className="min-h-svh bg-festa">
+      <header className="glass p-4 shadow-sm border-b border-rosa-100/50">
+        <div className="flex items-center gap-3 max-w-lg mx-auto">
+          <Link to="/admin/dashboard" className="p-2 hover:bg-rosa-100 rounded-xl transition-colors">
+            <ArrowLeft size={20} className="text-rosa-500" />
+          </Link>
+          <Wine size={20} className="text-rosa-500" />
+          <h1 className="font-bold text-rosa-600">Coctels ({cocktails.length})</h1>
+        </div>
       </header>
 
       <main className="p-4 max-w-lg mx-auto">
-        <Button onClick={() => setIsModalOpen(true)} className="w-full mb-4">
-          <Plus size={16} className="inline mr-2" />
+        <Button onClick={() => setIsModalOpen(true)} className="w-full mb-5" size="lg">
+          <Plus size={18} className="inline mr-2" />
           Afegir coctel
         </Button>
 
-        <div className="space-y-3">
+        <div className="space-y-3 stagger">
           {cocktails.map((cocktail) => (
             <Card key={cocktail._id}>
               <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold">{cocktail.name}</h3>
-                  <div className="flex flex-wrap gap-1 mt-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-rosa-600">{cocktail.name}</h3>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
                     {cocktail.ingredients.map((ing, i) => (
-                      <span key={i} className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">
+                      <span key={i} className="text-xs bg-gradient-to-r from-rosa-50 to-lila-50 text-rosa-600 px-2.5 py-1 rounded-full border border-rosa-100 font-medium">
                         {ing}
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-1">
-                  <button onClick={() => handleEdit(cocktail)} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                    <Edit3 size={16} />
+                <div className="flex gap-1 ml-2">
+                  <button onClick={() => handleEdit(cocktail)} className="p-2 hover:bg-rosa-50 rounded-xl transition-colors">
+                    <Edit3 size={16} className="text-rosa-400" />
                   </button>
-                  <button onClick={() => handleDelete(cocktail._id)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg">
-                    <Trash2 size={16} />
+                  <button onClick={() => handleDelete(cocktail._id)} className="p-2 hover:bg-red-50 rounded-xl transition-colors">
+                    <Trash2 size={16} className="text-red-400" />
                   </button>
                 </div>
               </div>
             </Card>
           ))}
           {cocktails.length === 0 && (
-            <p className="text-center text-gray-400 py-8">No hi ha coctels</p>
+            <p className="text-center text-rosa-300 py-12">No hi ha coctels</p>
           )}
         </div>
       </main>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingId ? 'Editar coctel' : 'Nou coctel'}
-      >
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingId ? 'Editar coctel' : 'Nou coctel'}>
         <div className="space-y-4">
           <Input label="Nom" value={name} onChange={(e) => setName(e.target.value)} placeholder="Mojito" />
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Ingredients</label>
+            <label className="block text-sm font-semibold text-rosa-600 mb-2">Ingredients</label>
             {ingredients.map((ing, i) => (
               <div key={i} className="flex gap-2 mb-2">
-                <Input
-                  value={ing}
-                  onChange={(e) => updateIngredient(i, e.target.value)}
-                  placeholder="Ingredient..."
-                />
+                <Input value={ing} onChange={(e) => setIngredients(ingredients.map((x, j) => j === i ? e.target.value : x))} placeholder="Ingredient..." />
                 {ingredients.length > 1 && (
-                  <button onClick={() => removeIngredient(i)} className="text-red-400 hover:text-red-600 px-2">
+                  <button onClick={() => setIngredients(ingredients.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 px-2">
                     <Trash2 size={16} />
                   </button>
                 )}
               </div>
             ))}
-            <Button onClick={addIngredient} variant="secondary" size="sm">
-              <Plus size={14} className="inline mr-1" />
-              Afegir
+            <Button onClick={() => setIngredients([...ingredients, ''])} variant="secondary" size="sm">
+              <Plus size={14} className="inline mr-1" /> Afegir
             </Button>
           </div>
-
           <div className="flex gap-2 pt-2">
-            <Button onClick={closeModal} variant="secondary" className="flex-1">
-              Cancel·lar
-            </Button>
-            <Button onClick={handleSave} className="flex-1">
-              Guardar
-            </Button>
+            <Button onClick={closeModal} variant="secondary" className="flex-1">Cancel·lar</Button>
+            <Button onClick={handleSave} className="flex-1">Guardar</Button>
           </div>
         </div>
       </Modal>

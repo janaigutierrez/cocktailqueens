@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { Card } from '../components/ui/Card';
-import { Users, Wifi, WifiOff } from 'lucide-react';
+import { Users, Wifi, WifiOff, Sparkles } from 'lucide-react';
 
 export const LobbyPage = () => {
   const { game, teams, myTeam } = useGame();
@@ -20,39 +20,48 @@ export const LobbyPage = () => {
   }, [game, myTeam, navigate]);
 
   return (
-    <div className="min-h-svh flex flex-col items-center p-6 bg-gradient-to-b from-pink-100 to-purple-100">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-pink-600 mb-2">Sala d'espera</h1>
-        <p className="text-gray-600">
+    <div className="min-h-svh flex flex-col items-center p-6 bg-festa">
+      <div className="text-center mb-8 animate-fade-in">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 mb-4 shadow-lg shadow-rosa-300/50 animate-pulse-glow">
+          <Sparkles className="text-white" size={24} />
+        </div>
+        <h1 className="text-2xl font-bold text-gradient mb-1">
+          {game?.status === 'lobby-intermedi' ? 'Pausa entre jocs' : "Sala d'espera"}
+        </h1>
+        <p className="text-rosa-400">
           {game?.status === 'lobby-intermedi'
-            ? "Pausa entre jocs - esperant l'admin"
-            : "Esperant que l'admin comenci el joc..."}
+            ? "Preparant el seguent joc..."
+            : "Esperant que l'admin comenci..."}
         </p>
         {myTeam && (
-          <p className="text-sm text-pink-500 mt-2">
-            El teu equip: <strong>{myTeam.name}</strong>
-          </p>
+          <div className="inline-block mt-3 px-4 py-1.5 rounded-full bg-rosa-100 text-rosa-600 font-semibold text-sm">
+            Equip: {myTeam.name}
+          </div>
         )}
       </div>
 
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm animate-slide-up">
         <div className="flex items-center gap-2 mb-4">
-          <Users size={20} className="text-pink-500" />
-          <h2 className="font-semibold">Equips ({teams.length})</h2>
+          <Users size={20} className="text-rosa-500" />
+          <h2 className="font-bold text-rosa-600">Equips ({teams.length})</h2>
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-2 stagger">
           {teams.map((team) => (
             <li
               key={team._id}
-              className="flex items-center justify-between p-2 rounded-lg bg-gray-50"
+              className={`flex items-center justify-between p-3 rounded-xl transition-colors ${
+                team._id === myTeam?._id
+                  ? 'bg-gradient-to-r from-rosa-50 to-lila-50 border border-rosa-200'
+                  : 'bg-rosa-50/50'
+              }`}
             >
-              <span className={team._id === myTeam?._id ? 'font-bold text-pink-600' : ''}>
+              <span className={team._id === myTeam?._id ? 'font-bold text-rosa-600' : 'text-gray-700'}>
                 {team.name}
               </span>
               {team.isConnected ? (
                 <Wifi size={16} className="text-green-500" />
               ) : (
-                <WifiOff size={16} className="text-red-400" />
+                <WifiOff size={16} className="text-gray-300" />
               )}
             </li>
           ))}
@@ -60,8 +69,9 @@ export const LobbyPage = () => {
       </Card>
 
       <div className="mt-8 flex items-center gap-2">
-        <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" />
-        <span className="text-sm text-gray-500">En espera...</span>
+        <div className="w-2 h-2 bg-rosa-400 rounded-full animate-pulse" />
+        <div className="w-2 h-2 bg-lila-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+        <div className="w-2 h-2 bg-gold-400 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }} />
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { useSocket } from '../context/SocketContext';
 import { useGame } from '../context/GameContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Wine } from 'lucide-react';
+import { Wine, Sparkles } from 'lucide-react';
 
 export const JoinPage = () => {
   const [teamName, setTeamName] = useState('');
@@ -33,19 +33,33 @@ export const JoinPage = () => {
   };
 
   return (
-    <div className="min-h-svh flex flex-col items-center justify-center p-6 bg-gradient-to-b from-pink-100 to-purple-100">
-      <div className="text-center mb-8">
-        <Wine className="mx-auto mb-4 text-pink-500" size={48} />
-        <h1 className="text-4xl font-bold text-pink-600 mb-2">Cocktail Queens</h1>
-        <p className="text-gray-600">Entra el nom del teu equip</p>
+    <div className="min-h-svh flex flex-col items-center justify-center p-6 bg-festa relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-10 left-10 text-rosa-200 animate-float" style={{ animationDelay: '0s' }}>
+        <Sparkles size={24} />
+      </div>
+      <div className="absolute top-20 right-12 text-lila-200 animate-float" style={{ animationDelay: '1s' }}>
+        <Sparkles size={18} />
+      </div>
+      <div className="absolute bottom-20 left-16 text-gold-200 animate-float" style={{ animationDelay: '2s' }}>
+        <Sparkles size={20} />
       </div>
 
-      <div className="w-full max-w-sm space-y-4">
+      <div className="text-center mb-10 animate-bounce-in">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 mb-5 shadow-lg shadow-rosa-300/50">
+          <Wine className="text-white" size={36} />
+        </div>
+        <h1 className="text-4xl font-extrabold text-gradient mb-2">Cocktail Queens</h1>
+        <p className="text-rosa-400 text-lg">Comiat de soltera</p>
+      </div>
+
+      <div className="w-full max-w-sm space-y-5 animate-slide-up">
         <Input
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
-          placeholder="Nom de l'equip"
+          placeholder="Nom del teu equip"
           onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
+          className="text-center text-lg"
         />
 
         <Button
@@ -54,15 +68,19 @@ export const JoinPage = () => {
           className="w-full"
           size="lg"
         >
-          Entrar
+          <Sparkles size={18} className="inline mr-2" />
+          Entrar a la festa
         </Button>
 
         {!isConnected && (
-          <p className="text-sm text-red-500 text-center">Connectant al servidor...</p>
+          <div className="flex items-center justify-center gap-2 text-rosa-400">
+            <div className="w-2 h-2 bg-rosa-400 rounded-full animate-pulse" />
+            <p className="text-sm">Connectant al servidor...</p>
+          </div>
         )}
         {!game && isConnected && (
-          <p className="text-sm text-orange-500 text-center">
-            Esperant que l'admin creii una partida...
+          <p className="text-sm text-lila-400 text-center">
+            Esperant que l'admin creii la partida...
           </p>
         )}
       </div>

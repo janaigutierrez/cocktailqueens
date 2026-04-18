@@ -4,7 +4,7 @@ import { useGame } from '../../context/GameContext';
 import { BingoCard } from './BingoCard';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { Music, PartyPopper } from 'lucide-react';
+import { Music, PartyPopper, Crown } from 'lucide-react';
 import type { BingoCell } from '../../types';
 
 export const BingoView = () => {
@@ -67,43 +67,50 @@ export const BingoView = () => {
 
   if (winner) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <PartyPopper className="text-yellow-500 mb-4" size={64} />
-        <h2 className="text-2xl font-bold text-pink-600">
+      <div className="flex flex-col items-center justify-center py-16 animate-bounce-in">
+        <PartyPopper className="text-gold-500 mb-2" size={64} />
+        <Crown className="text-gold-400 mb-4" size={36} />
+        <h2 className="text-3xl font-extrabold text-gradient mb-2">
           {winner.type === 'bingo' ? 'BINGO!' : 'LINIA!'}
         </h2>
-        <p className="text-lg mt-2">Guanyador: {winner.teamName}</p>
+        <p className="text-xl text-rosa-500 font-bold">{winner.teamName}</p>
       </div>
     );
   }
 
   if (cells.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Music className="text-pink-400 mb-4 animate-pulse" size={48} />
-        <p className="text-gray-600">Esperant el carto de bingo...</p>
+      <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+        <div className="w-16 h-16 rounded-full bg-lila-100 flex items-center justify-center mb-4 animate-pulse-glow">
+          <Music className="text-lila-500" size={32} />
+        </div>
+        <p className="text-rosa-400 text-lg">Esperant el carto de bingo...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-center text-pink-600">Bingo Musical</h2>
+    <div className="space-y-4 animate-slide-up">
+      <div className="text-center">
+        <h2 className="text-2xl font-extrabold text-gradient">Bingo Musical</h2>
+      </div>
 
       {currentSongNumber !== null && (
-        <Card className="text-center bg-pink-50">
-          <Music className="inline mr-2 text-pink-500" size={20} />
-          <span className="font-bold">Canco #{currentSongNumber}</span>
+        <Card className="text-center bg-gradient-to-r from-lila-50 to-rosa-50 border-lila-200">
+          <div className="flex items-center justify-center gap-2">
+            <Music className="text-lila-500 animate-pulse" size={20} />
+            <span className="font-bold text-lila-600">Canco #{currentSongNumber}</span>
+          </div>
         </Card>
       )}
 
       <BingoCard cells={cells} onMarkCell={handleMarkCell} />
 
       <div className="flex gap-3">
-        <Button onClick={handleClaimLine} variant="secondary" className="flex-1">
+        <Button onClick={handleClaimLine} variant="secondary" className="flex-1" size="lg">
           Linia!
         </Button>
-        <Button onClick={handleClaimBingo} className="flex-1">
+        <Button onClick={handleClaimBingo} variant="gold" className="flex-1" size="lg">
           BINGO!
         </Button>
       </div>
