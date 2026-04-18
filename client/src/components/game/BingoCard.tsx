@@ -1,4 +1,4 @@
-import { BingoCell, Song } from '../../types';
+import type { BingoCell, Song } from '../../types';
 
 interface BingoCardProps {
   cells: BingoCell[];

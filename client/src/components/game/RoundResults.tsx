@@ -1,7 +1,7 @@
 import { useGame } from '../../context/GameContext';
 import { Card } from '../ui/Card';
 import { Trophy } from 'lucide-react';
-import { GameMode } from '../../types';
+import type { GameMode } from '../../types';
 
 interface RoundResultsProps {
   mode: GameMode;

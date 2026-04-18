@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
 import { cocktailService } from '../../services/cocktailService';
-import { Cocktail } from '../../types';
+import type { Cocktail } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';

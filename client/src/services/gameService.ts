@@ -1,5 +1,5 @@
 import api from './api';
-import { Game, Team } from '../types';
+import type { Game, Team } from '../types';
 
 export const gameService = {
   get: () => api.get<Game>('/game').then((r) => r.data),

@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSocket } from '../../context/SocketContext';
-import { useGame } from '../../context/GameContext';
 import { Card } from '../ui/Card';
-import { Cocktail } from '../../types';
 import { GlassWater } from 'lucide-react';
 
 export const Prova1View = () => {
   const { socket } = useSocket();
-  const { myTeam } = useGame();
   const [assignment, setAssignment] = useState<{ name: string; ingredients: string[] } | null>(null);
 
   useEffect(() => {

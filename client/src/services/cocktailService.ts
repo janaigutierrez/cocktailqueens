@@ -1,5 +1,5 @@
 import api from './api';
-import { Cocktail } from '../types';
+import type { Cocktail } from '../types';
 
 export const cocktailService = {
   getAll: () => api.get<Cocktail[]>('/cocktails').then((r) => r.data),

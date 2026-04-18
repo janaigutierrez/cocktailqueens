@@ -4,7 +4,7 @@ import { useGame } from '../../context/GameContext';
 import { songService } from '../../services/songService';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { Song } from '../../types';
+import type { Song } from '../../types';
 import { Music, Play, CheckCircle, XCircle, PartyPopper } from 'lucide-react';
 
 interface Props {
@@ -23,7 +23,6 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
   const { game } = useGame();
   const [songs, setSongs] = useState<Song[]>([]);
   const [started, setStarted] = useState(false);
-  const [currentSongIdx, setCurrentSongIdx] = useState(-1);
   const [playedSongs, setPlayedSongs] = useState<string[]>([]);
   const [pendingMarks, setPendingMarks] = useState<MarkEvent[]>([]);
   const [winner, setWinner] = useState<{ type: string; teamName: string } | null>(null);
@@ -59,7 +58,6 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
     if (!socket || !game) return;
     socket.emit('bingo:next-song', { gameId: game._id, songId });
     setPlayedSongs((prev) => [...prev, songId]);
-    setCurrentSongIdx(songs.findIndex((s) => s._id === songId));
   };
 
   const handleValidate = (mark: MarkEvent, valid: boolean) => {

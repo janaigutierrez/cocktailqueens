@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSocket } from '../../context/SocketContext';
 import { useGame } from '../../context/GameContext';
@@ -14,8 +14,6 @@ import {
   Wine,
   Music,
   Users,
-  Settings,
-  Play,
   ArrowLeft,
   Trophy,
   LogOut,

@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { useSocket } from './SocketContext';
-import { Game, GameStatus, GameMode, Team } from '../types';
+import type { Game, GameStatus, GameMode, Team } from '../types';
 import { gameService } from '../services/gameService';
 
 interface GameContextType {

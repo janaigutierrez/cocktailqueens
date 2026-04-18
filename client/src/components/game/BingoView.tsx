@@ -5,7 +5,7 @@ import { BingoCard } from './BingoCard';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Music, PartyPopper } from 'lucide-react';
-import { BingoCell, Song } from '../../types';
+import type { BingoCell } from '../../types';
 
 export const BingoView = () => {
   const { socket } = useSocket();

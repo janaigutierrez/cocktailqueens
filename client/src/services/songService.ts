@@ -1,5 +1,5 @@
 import api from './api';
-import { Song } from '../types';
+import type { Song } from '../types';
 
 export const songService = {
   getAll: () => api.get<Song[]>('/songs').then((r) => r.data),
