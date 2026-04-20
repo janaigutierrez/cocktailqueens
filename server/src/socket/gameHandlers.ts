@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { Game, GameMode, GameStatus } from '../models/Game';
 import { Team } from '../models/Team';
+import { BingoCard } from '../models/BingoCard';
 
 export const registerGameHandlers = (io: Server, socket: Socket) => {
   // Admin selects which game mode to play
@@ -10,14 +11,51 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
       const game = await Game.findById(gameId);
       if (!game) return;
 
-      if (game.completedModes.includes(mode)) {
-        socket.emit('error', { message: `${mode} already completed` });
-        return;
-      }
-
       game.currentMode = mode;
       const newStatus: GameStatus = mode === 'cocktails' ? 'cocktails-prova1' : 'bingo';
       game.status = newStatus;
+
+      // If replaying a mode, remove it from completedModes and reset its data
+      if (game.completedModes.includes(mode)) {
+        game.completedModes = game.completedModes.filter((m) => m !== mode);
+        if (mode === 'cocktails') {
+          game.prova1Assignments = [];
+          game.prova2Submissions = [];
+          game.prova3Config = { cocktails: [] };
+          game.prova3Submissions = [];
+          // Reset cocktail scores for all teams
+          await Team.updateMany({ game: gameId }, {
+            'scores.prova1': { taste: 0, presentation: 0 },
+            'scores.prova2': { creativity: 0, taste: 0, presentation: 0 },
+            'scores.prova3': 0,
+          });
+        } else {
+          game.bingoSongPool = [];
+          game.bingoCurrentSong = null;
+          game.bingoPlayedSongs = [];
+          game.bingoWinners = { line: null, bingo: null };
+          await BingoCard.deleteMany({ game: gameId });
+          // Reset bingo scores for all teams
+          await Team.updateMany({ game: gameId }, {
+            'scores.bingo': { lines: 0, bingos: 0 },
+          });
+        }
+        // Recalc total scores
+        const teams = await Team.find({ game: gameId });
+        for (const team of teams) {
+          team.totalScore =
+            team.scores.prova1.taste +
+            team.scores.prova1.presentation +
+            team.scores.prova2.creativity +
+            team.scores.prova2.taste +
+            team.scores.prova2.presentation +
+            team.scores.prova3 +
+            team.scores.bingo.lines * 5 +
+            team.scores.bingo.bingos * 10;
+          await team.save();
+        }
+      }
+
       await game.save();
 
       io.emit('game:phase-change', { status: game.status, currentMode: game.currentMode });
@@ -94,6 +132,25 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
       io.emit('ranking:update', { rankings: teams });
     } catch (error) {
       socket.emit('error', { message: 'Failed to finish game' });
+    }
+  });
+
+  // Admin resets everything — new game from scratch
+  socket.on('game:reset', async (data: { gameId: string }) => {
+    try {
+      const { gameId } = data;
+
+      // Clean up old data
+      await Team.deleteMany({ game: gameId });
+      await BingoCard.deleteMany({ game: gameId });
+      await Game.findByIdAndDelete(gameId);
+
+      // Create fresh game
+      const newGame = await Game.create({});
+
+      io.emit('game:reset', { gameId: newGame._id });
+    } catch (error) {
+      socket.emit('error', { message: 'Failed to reset game' });
     }
   });
 };

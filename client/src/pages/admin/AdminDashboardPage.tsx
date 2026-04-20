@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSocket } from '../../context/SocketContext';
 import { useGame } from '../../context/GameContext';
@@ -6,6 +6,7 @@ import { adminService } from '../../services/adminService';
 import { gameService } from '../../services/gameService';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { Modal } from '../../components/ui/Modal';
 import { Prova1AdminPanel } from '../../components/admin/Prova1AdminPanel';
 import { Prova2AdminPanel } from '../../components/admin/Prova2AdminPanel';
 import { Prova3AdminPanel } from '../../components/admin/Prova3AdminPanel';
@@ -21,12 +22,17 @@ import {
   WifiOff,
   Plus,
   CheckCircle,
+  RotateCcw,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const { socket } = useSocket();
   const { game, teams, refreshGame } = useGame();
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showReplayConfirm, setShowReplayConfirm] = useState<'cocktails' | 'bingo' | null>(null);
 
   useEffect(() => {
     if (!adminService.isLoggedIn()) {
@@ -41,7 +47,18 @@ export const AdminDashboardPage = () => {
 
   const handleSelectMode = (mode: 'cocktails' | 'bingo') => {
     if (!socket || !game) return;
+    // If mode was already completed, ask for confirmation
+    if (game.completedModes.includes(mode)) {
+      setShowReplayConfirm(mode);
+      return;
+    }
     socket.emit('game:select-mode', { gameId: game._id, mode });
+  };
+
+  const handleConfirmReplay = () => {
+    if (!socket || !game || !showReplayConfirm) return;
+    socket.emit('game:select-mode', { gameId: game._id, mode: showReplayConfirm });
+    setShowReplayConfirm(null);
   };
 
   const handleAdvance = () => {
@@ -57,6 +74,12 @@ export const AdminDashboardPage = () => {
   const handleFinish = () => {
     if (!socket || !game) return;
     socket.emit('game:finish', { gameId: game._id });
+  };
+
+  const handleReset = () => {
+    if (!socket || !game) return;
+    socket.emit('game:reset', { gameId: game._id });
+    setShowResetConfirm(false);
   };
 
   const handleLogout = () => {
@@ -94,43 +117,60 @@ export const AdminDashboardPage = () => {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => handleSelectMode('cocktails')}
-            disabled={game?.completedModes.includes('cocktails')}
             className={`relative p-6 rounded-2xl border-2 transition-all active:scale-95 flex flex-col items-center gap-2 ${
               game?.completedModes.includes('cocktails')
-                ? 'border-gray-200 bg-gray-50 opacity-60'
+                ? 'border-green-200 bg-green-50/50 hover:border-rosa-400'
                 : 'border-rosa-200 bg-gradient-to-br from-rosa-50 to-lila-50 hover:border-rosa-400 shadow-lg shadow-rosa-100'
             }`}
           >
             {game?.completedModes.includes('cocktails') && (
-              <CheckCircle size={18} className="absolute top-2 right-2 text-green-500" />
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                <CheckCircle size={16} className="text-green-500" />
+              </div>
             )}
             <Wine size={32} className="text-rosa-500" />
             <span className="font-bold text-rosa-600">Coctels</span>
+            {game?.completedModes.includes('cocktails') && (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                <RefreshCw size={10} /> Repetir
+              </span>
+            )}
           </button>
           <button
             onClick={() => handleSelectMode('bingo')}
-            disabled={game?.completedModes.includes('bingo')}
             className={`relative p-6 rounded-2xl border-2 transition-all active:scale-95 flex flex-col items-center gap-2 ${
               game?.completedModes.includes('bingo')
-                ? 'border-gray-200 bg-gray-50 opacity-60'
+                ? 'border-green-200 bg-green-50/50 hover:border-lila-400'
                 : 'border-lila-200 bg-gradient-to-br from-lila-50 to-gold-50 hover:border-lila-400 shadow-lg shadow-lila-100'
             }`}
           >
             {game?.completedModes.includes('bingo') && (
-              <CheckCircle size={18} className="absolute top-2 right-2 text-green-500" />
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                <CheckCircle size={16} className="text-green-500" />
+              </div>
             )}
             <Music size={32} className="text-lila-500" />
             <span className="font-bold text-lila-600">Bingo</span>
+            {game?.completedModes.includes('bingo') && (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                <RefreshCw size={10} /> Repetir
+              </span>
+            )}
           </button>
         </div>
 
         {(game?.completedModes.length ?? 0) > 0 && (
-          <Button onClick={handleFinish} variant="danger" className="w-full mt-4">
+          <Button onClick={handleFinish} variant="gold" className="w-full mt-4">
             <Trophy size={16} className="inline mr-2" />
             Acabar partida
           </Button>
         )}
       </Card>
+
+      <Button onClick={() => setShowResetConfirm(true)} variant="danger" className="w-full" size="sm">
+        <RotateCcw size={14} className="inline mr-2" />
+        Resetejar tot (nova partida de 0)
+      </Button>
     </div>
   );
 
@@ -211,12 +251,71 @@ export const AdminDashboardPage = () => {
           <div className="text-center py-16 animate-bounce-in">
             <Trophy className="mx-auto text-gold-500 mb-4" size={64} />
             <h2 className="text-2xl font-extrabold text-gradient mb-6">Partida acabada!</h2>
-            <Button onClick={handleCreateGame} size="lg">Nova partida</Button>
+            <div className="space-y-3">
+              <Button onClick={handleCreateGame} size="lg" className="w-full">
+                <Plus size={18} className="inline mr-2" />
+                Nova partida
+              </Button>
+              <Button onClick={() => setShowResetConfirm(true)} variant="danger" size="sm" className="w-full">
+                <RotateCcw size={14} className="inline mr-2" />
+                Resetejar tot
+              </Button>
+            </div>
           </div>
         ) : (
           renderGameControls()
         )}
       </main>
+
+      {/* Confirm reset modal */}
+      <Modal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} title="Resetejar partida">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl">
+            <AlertTriangle size={20} className="text-red-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-red-700">Estas segur/a?</p>
+              <p className="text-sm text-red-600 mt-1">
+                S'esborraran tots els equips, puntuacions i dades del joc. Els jugadors hauran de tornar a entrar.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowResetConfirm(false)} variant="secondary" className="flex-1">
+              Cancel·lar
+            </Button>
+            <Button onClick={handleReset} variant="danger" className="flex-1">
+              <RotateCcw size={14} className="inline mr-2" />
+              Resetejar
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Confirm replay mode modal */}
+      <Modal isOpen={!!showReplayConfirm} onClose={() => setShowReplayConfirm(null)} title="Repetir joc">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 bg-gold-50 rounded-xl">
+            <RefreshCw size={20} className="text-gold-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-rosa-700">
+                Vols tornar a jugar {showReplayConfirm === 'cocktails' ? 'Coctels' : 'Bingo'}?
+              </p>
+              <p className="text-sm text-rosa-500 mt-1">
+                Les puntuacions anteriors d'aquest joc es resetejaran. Els equips es mantenen.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowReplayConfirm(null)} variant="secondary" className="flex-1">
+              Cancel·lar
+            </Button>
+            <Button onClick={handleConfirmReplay} variant="gold" className="flex-1">
+              <RefreshCw size={14} className="inline mr-2" />
+              Repetir
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

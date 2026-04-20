@@ -74,6 +74,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       refreshGame();
     });
 
+    socket.on('game:reset', () => {
+      setTeams([]);
+      setMyTeam(null);
+      refreshGame();
+    });
+
     return () => {
       socket.off('game:phase-change');
       socket.off('team:joined');
@@ -81,6 +87,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       socket.off('team:disconnected');
       socket.off('ranking:update');
       socket.off('lobby:reopen');
+      socket.off('game:reset');
     };
   }, [socket, refreshGame]);
 
