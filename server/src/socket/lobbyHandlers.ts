@@ -34,6 +34,32 @@ export const registerLobbyHandlers = (io: Server, socket: Socket) => {
     }
   });
 
+  // Admin kicks a team
+  socket.on('team:kick', async (data: { teamId: string; gameId: string }) => {
+    try {
+      const { teamId, gameId } = data;
+      const team = await Team.findById(teamId);
+      if (!team) return;
+
+      // Disconnect the team's socket if connected
+      if (team.socketId) {
+        const teamSocket = io.sockets.sockets.get(team.socketId);
+        if (teamSocket) {
+          teamSocket.emit('team:kicked');
+          teamSocket.disconnect(true);
+        }
+      }
+
+      await Team.findByIdAndDelete(teamId);
+
+      const teams = await Team.find({ game: gameId });
+      io.emit('teams:list', { teams });
+      io.emit('team:removed', { teamId });
+    } catch (error) {
+      socket.emit('error', { message: 'Failed to kick team' });
+    }
+  });
+
   socket.on('disconnect', async () => {
     try {
       if (socket.data.teamId) {

@@ -80,6 +80,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       refreshGame();
     });
 
+    socket.on('team:kicked', () => {
+      setMyTeam(null);
+    });
+
+    socket.on('team:removed', (data: { teamId: string }) => {
+      setTeams((prev) => prev.filter((t) => t._id !== data.teamId));
+      setMyTeam((prev) => (prev && prev._id === data.teamId ? null : prev));
+    });
+
     return () => {
       socket.off('game:phase-change');
       socket.off('team:joined');
@@ -88,6 +97,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       socket.off('ranking:update');
       socket.off('lobby:reopen');
       socket.off('game:reset');
+      socket.off('team:kicked');
+      socket.off('team:removed');
     };
   }, [socket, refreshGame]);
 

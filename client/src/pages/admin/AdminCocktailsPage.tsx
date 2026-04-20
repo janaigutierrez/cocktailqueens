@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
-import { ArrowLeft, Plus, Trash2, Edit3, Wine } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit3, Wine, AlertCircle } from 'lucide-react';
 
 export const AdminCocktailsPage = () => {
   const navigate = useNavigate();
@@ -16,6 +16,8 @@ export const AdminCocktailsPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [ingredients, setIngredients] = useState<string[]>(['']);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!adminService.isLoggedIn()) { navigate('/admin'); return; }
@@ -23,32 +25,50 @@ export const AdminCocktailsPage = () => {
   }, [navigate]);
 
   const loadCocktails = async () => {
-    const data = await cocktailService.getAll();
-    setCocktails(data);
+    try {
+      const data = await cocktailService.getAll();
+      setCocktails(data);
+    } catch {
+      setError('Error carregant coctels. Comprova la connexio.');
+    }
   };
 
   const handleSave = async () => {
     const filtered = ingredients.filter((i) => i.trim());
     if (!name.trim() || filtered.length === 0) return;
-    if (editingId) {
-      await cocktailService.update(editingId, { name, ingredients: filtered });
-    } else {
-      await cocktailService.create({ name, ingredients: filtered });
+    setLoading(true);
+    setError('');
+    try {
+      if (editingId) {
+        await cocktailService.update(editingId, { name, ingredients: filtered });
+      } else {
+        await cocktailService.create({ name, ingredients: filtered });
+      }
+      closeModal();
+      await loadCocktails();
+    } catch {
+      setError('Error guardant el coctel. Comprova la connexio.');
+    } finally {
+      setLoading(false);
     }
-    closeModal();
-    loadCocktails();
   };
 
   const handleEdit = (cocktail: Cocktail) => {
     setEditingId(cocktail._id);
     setName(cocktail.name);
     setIngredients(cocktail.ingredients.length > 0 ? cocktail.ingredients : ['']);
+    setError('');
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    await cocktailService.delete(id);
-    loadCocktails();
+    setError('');
+    try {
+      await cocktailService.delete(id);
+      await loadCocktails();
+    } catch {
+      setError('Error esborrant el coctel');
+    }
   };
 
   const closeModal = () => {
@@ -56,6 +76,7 @@ export const AdminCocktailsPage = () => {
     setEditingId(null);
     setName('');
     setIngredients(['']);
+    setError('');
   };
 
   return (
@@ -71,7 +92,14 @@ export const AdminCocktailsPage = () => {
       </header>
 
       <main className="p-4 max-w-lg mx-auto">
-        <Button onClick={() => setIsModalOpen(true)} className="w-full mb-5" size="lg">
+        {error && (
+          <div className="flex items-center gap-2 p-3 mb-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium">
+            <AlertCircle size={16} className="flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
+        <Button onClick={() => { setError(''); setIsModalOpen(true); }} className="w-full mb-5" size="lg">
           <Plus size={18} className="inline mr-2" />
           Afegir coctel
         </Button>
@@ -109,6 +137,12 @@ export const AdminCocktailsPage = () => {
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingId ? 'Editar coctel' : 'Nou coctel'}>
         <div className="space-y-4">
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium">
+              <AlertCircle size={16} className="flex-shrink-0" />
+              {error}
+            </div>
+          )}
           <Input label="Nom" value={name} onChange={(e) => setName(e.target.value)} placeholder="Mojito" />
           <div>
             <label className="block text-sm font-semibold text-rosa-600 mb-2">Ingredients</label>
@@ -128,7 +162,9 @@ export const AdminCocktailsPage = () => {
           </div>
           <div className="flex gap-2 pt-2">
             <Button onClick={closeModal} variant="secondary" className="flex-1">Cancel·lar</Button>
-            <Button onClick={handleSave} className="flex-1">Guardar</Button>
+            <Button onClick={handleSave} disabled={loading} className="flex-1">
+              {loading ? 'Guardant...' : 'Guardar'}
+            </Button>
           </div>
         </div>
       </Modal>
