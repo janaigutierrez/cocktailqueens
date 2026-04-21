@@ -4,33 +4,69 @@ import { useSocket } from '../context/SocketContext';
 import { useGame } from '../context/GameContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Wine, Sparkles } from 'lucide-react';
+import { Wine, Sparkles, Loader2 } from 'lucide-react';
+
+function getRouteForStatus(status: string): string {
+  if (status === 'lobby' || status === 'lobby-intermedi') return '/lobby';
+  if (status === 'finished') return '/ranking';
+  if (status.startsWith('cocktails') || status === 'bingo' || status === 'bingo-results') return '/game';
+  return '/lobby';
+}
 
 export const JoinPage = () => {
   const [teamName, setTeamName] = useState('');
   const { socket, isConnected } = useSocket();
-  const { game, setMyTeam } = useGame();
+  const { game, myTeam, isReconnecting } = useGame();
   const navigate = useNavigate();
+
+  // If already reconnected (via token), navigate to correct page
+  useEffect(() => {
+    if (myTeam && game) {
+      navigate(getRouteForStatus(game.status));
+    }
+  }, [myTeam, game, navigate]);
 
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('team:joined', (data) => {
-      if (data.team.socketId === socket.id) {
-        setMyTeam(data.team);
-        navigate('/lobby');
-      }
-    });
+    // Listen for token (new join) - navigate to lobby
+    const handleToken = () => {
+      navigate('/lobby');
+    };
+
+    // Listen for game state after join (for mid-game joins)
+    const handleGameState = (data: { status: string }) => {
+      navigate(getRouteForStatus(data.status));
+    };
+
+    socket.on('team:token', handleToken);
+    socket.on('game:state', handleGameState);
 
     return () => {
-      socket.off('team:joined');
+      socket.off('team:token', handleToken);
+      socket.off('game:state', handleGameState);
     };
-  }, [socket, navigate, setMyTeam]);
+  }, [socket, navigate]);
 
   const handleJoin = () => {
     if (!socket || !game || !teamName.trim()) return;
     socket.emit('team:join', { teamName: teamName.trim(), gameId: game._id });
   };
+
+  // Show reconnecting state
+  if (isReconnecting) {
+    return (
+      <div className="min-h-svh flex flex-col items-center justify-center p-6 bg-festa">
+        <div className="text-center animate-fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 mb-5 shadow-lg animate-pulse-glow">
+            <Loader2 className="text-white animate-spin" size={32} />
+          </div>
+          <h2 className="text-xl font-bold text-gradient mb-2">Reconnectant...</h2>
+          <p className="text-rosa-400">Recuperant la teva sessio</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-svh flex flex-col items-center justify-center p-6 bg-festa relative overflow-hidden">

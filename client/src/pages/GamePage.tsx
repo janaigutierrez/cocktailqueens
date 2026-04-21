@@ -18,10 +18,13 @@ const statusLabels: Record<string, string> = {
 };
 
 export const GamePage = () => {
-  const { game, myTeam } = useGame();
+  const { game, myTeam, isReconnecting } = useGame();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Wait for reconnection to finish before redirecting
+    if (isReconnecting) return;
+
     if (!myTeam) {
       navigate('/');
       return;
@@ -34,7 +37,7 @@ export const GamePage = () => {
     if (game?.status === 'finished') {
       navigate('/ranking');
     }
-  }, [game, myTeam, navigate]);
+  }, [game, myTeam, navigate, isReconnecting]);
 
   if (!game || !myTeam) return null;
 

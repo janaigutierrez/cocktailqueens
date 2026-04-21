@@ -13,6 +13,8 @@ export interface ITeam extends Document {
   totalScore: number;
   isConnected: boolean;
   socketId: string | null;
+  deviceToken: string;
+  lastSeen: Date;
   game: mongoose.Types.ObjectId;
 }
 
@@ -38,6 +40,8 @@ const teamSchema = new Schema<ITeam>(
     totalScore: { type: Number, default: 0 },
     isConnected: { type: Boolean, default: false },
     socketId: { type: String, default: null },
+    deviceToken: { type: String, sparse: true, unique: true },
+    lastSeen: { type: Date, default: Date.now },
     game: { type: Schema.Types.ObjectId, ref: 'Game', required: true },
   },
   { timestamps: true }

@@ -5,19 +5,26 @@ import { Card } from '../components/ui/Card';
 import { Users, Wifi, WifiOff, Sparkles } from 'lucide-react';
 
 export const LobbyPage = () => {
-  const { game, teams, myTeam } = useGame();
+  const { game, teams, myTeam, isReconnecting } = useGame();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Wait for reconnection to finish before redirecting
+    if (isReconnecting) return;
+
     if (!myTeam) {
       navigate('/');
       return;
     }
 
     if (game && game.status !== 'lobby' && game.status !== 'lobby-intermedi') {
-      navigate('/game');
+      if (game.status === 'finished') {
+        navigate('/ranking');
+      } else {
+        navigate('/game');
+      }
     }
-  }, [game, myTeam, navigate]);
+  }, [game, myTeam, navigate, isReconnecting]);
 
   return (
     <div className="min-h-svh flex flex-col items-center p-6 bg-festa">
