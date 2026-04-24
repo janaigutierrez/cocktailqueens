@@ -53,8 +53,6 @@ export interface Game {
   prova2Submissions: { team: string; cocktailName: string; description: string }[];
   prova3Config: { cocktails: { number: number; correctName: string }[] };
   prova3Submissions: { team: string; guesses: { number: number; guessedName: string }[] }[];
-  bingoCurrentSong: string | null;
-  bingoPlayedSongs: string[];
   bingoWinners: { line: string | null; bingo: string | null };
 }
 

@@ -22,7 +22,7 @@ const bingoCardSchema = new Schema<IBingoCard>(
       {
         song: { type: Schema.Types.ObjectId, ref: 'Song', required: true },
         row: { type: Number, required: true, min: 0, max: 2 },
-        col: { type: Number, required: true, min: 0, max: 4 },
+        col: { type: Number, required: true, min: 0, max: 8 },
         markedByTeam: { type: Boolean, default: false },
         validatedByAdmin: { type: Boolean, default: false },
       },

@@ -2,9 +2,10 @@ import { Server, Socket } from 'socket.io';
 import crypto from 'crypto';
 import { Team } from '../models/Team';
 import { Game } from '../models/Game';
+import { BingoCard } from '../models/BingoCard';
 
-// Grace period: 30 seconds before marking as disconnected
-const DISCONNECT_GRACE_MS = 30_000;
+// Grace period: 60 seconds before marking as disconnected
+const DISCONNECT_GRACE_MS = 60_000;
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 
 export const registerLobbyHandlers = (io: Server, socket: Socket) => {
@@ -106,6 +107,14 @@ export const registerLobbyHandlers = (io: Server, socket: Socket) => {
         },
         teams,
       });
+
+      // If bingo is active, send the team's bingo card
+      if (game.status === 'bingo') {
+        const bingoCard = await BingoCard.findOne({ game: team.game, team: team._id }).populate('cells.song');
+        if (bingoCard) {
+          socket.emit('bingo:card', { card: bingoCard });
+        }
+      }
 
       // Notify others this team is back online
       io.emit('team:joined', { team });

@@ -20,8 +20,6 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
       }
 
       game.bingoSongPool = songs.map((s) => s._id);
-      game.bingoPlayedSongs = [];
-      game.bingoCurrentSong = null;
       game.bingoWinners = { line: null, bingo: null };
       await game.save();
 
@@ -45,25 +43,6 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
       }
     } catch (error) {
       socket.emit('error', { message: 'Failed to start bingo' });
-    }
-  });
-
-  // Admin selects next song
-  socket.on('bingo:next-song', async (data: { gameId: string; songId: string }) => {
-    try {
-      const { gameId, songId } = data;
-      const game = await Game.findById(gameId);
-      if (!game) return;
-
-      game.bingoCurrentSong = songId as any;
-      if (!game.bingoPlayedSongs.some((s) => s.toString() === songId)) {
-        game.bingoPlayedSongs.push(songId as any);
-      }
-      await game.save();
-
-      io.emit('bingo:current-song', { songNumber: game.bingoPlayedSongs.length });
-    } catch (error) {
-      socket.emit('error', { message: 'Failed to advance song' });
     }
   });
 
@@ -168,6 +147,18 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
       }
     }
   );
+
+  // Admin sends a mini-challenge to all players
+  socket.on('bingo:send-challenge', async (data: { gameId: string; text: string }) => {
+    try {
+      const { gameId, text } = data;
+      const game = await Game.findById(gameId);
+      if (!game || game.status !== 'bingo') return;
+      io.emit('bingo:challenge', { text });
+    } catch (error) {
+      socket.emit('error', { message: 'Failed to send challenge' });
+    }
+  });
 
   // Team claims bingo
   socket.on(

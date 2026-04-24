@@ -43,8 +43,6 @@ export interface IGame extends Document {
   prova3Config: { cocktails: IProva3Cocktail[] };
   prova3Submissions: IProva3Submission[];
   bingoSongPool: mongoose.Types.ObjectId[];
-  bingoCurrentSong: mongoose.Types.ObjectId | null;
-  bingoPlayedSongs: mongoose.Types.ObjectId[];
   bingoWinners: {
     line: mongoose.Types.ObjectId | null;
     bingo: mongoose.Types.ObjectId | null;
@@ -107,8 +105,6 @@ const gameSchema = new Schema<IGame>(
       },
     ],
     bingoSongPool: [{ type: Schema.Types.ObjectId, ref: 'Song' }],
-    bingoCurrentSong: { type: Schema.Types.ObjectId, ref: 'Song', default: null },
-    bingoPlayedSongs: [{ type: Schema.Types.ObjectId, ref: 'Song' }],
     bingoWinners: {
       line: { type: Schema.Types.ObjectId, ref: 'Team', default: null },
       bingo: { type: Schema.Types.ObjectId, ref: 'Team', default: null },

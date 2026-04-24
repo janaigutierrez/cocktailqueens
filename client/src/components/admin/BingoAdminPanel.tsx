@@ -4,8 +4,9 @@ import { useGame } from '../../context/GameContext';
 import { songService } from '../../services/songService';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { Input } from '../ui/Input';
 import type { Song } from '../../types';
-import { Music, Play, CheckCircle, XCircle, PartyPopper, Sparkles, AlertCircle } from 'lucide-react';
+import { Music, CheckCircle, XCircle, PartyPopper, AlertCircle, Trophy, Zap, Send } from 'lucide-react';
 
 interface Props {
   onFinish: () => void;
@@ -18,14 +19,24 @@ interface MarkEvent {
   songTitle: string;
 }
 
+const PRESET_CHALLENGES = [
+  'Tothom beu un glop!',
+  "Selfie d'equip! Comparteix-lo!",
+  "L'ultim equip balla 10 segons!",
+  "Abraçada grupal d'equip!",
+  'Qui canta la seguent canco primer?',
+];
+
 export const BingoAdminPanel = ({ onFinish }: Props) => {
   const { socket } = useSocket();
   const { game } = useGame();
   const [songs, setSongs] = useState<Song[]>([]);
   const [started, setStarted] = useState(false);
-  const [playedSongs, setPlayedSongs] = useState<string[]>([]);
   const [pendingMarks, setPendingMarks] = useState<MarkEvent[]>([]);
-  const [winner, setWinner] = useState<{ type: string; teamName: string } | null>(null);
+  const [lineWinner, setLineWinner] = useState<string | null>(null);
+  const [bingoWinner, setBingoWinner] = useState<string | null>(null);
+  const [customChallenge, setCustomChallenge] = useState('');
+  const [challengeSent, setChallengeSent] = useState(false);
 
   useEffect(() => {
     songService.getAll().then(setSongs);
@@ -39,7 +50,11 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
     });
 
     socket.on('bingo:winner', (data: { type: string; teamName: string }) => {
-      setWinner(data);
+      if (data.type === 'line') {
+        setLineWinner(data.teamName);
+      } else if (data.type === 'bingo') {
+        setBingoWinner(data.teamName);
+      }
     });
 
     return () => {
@@ -54,12 +69,6 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
     setStarted(true);
   };
 
-  const handleNextSong = (songId: string) => {
-    if (!socket || !game) return;
-    socket.emit('bingo:next-song', { gameId: game._id, songId });
-    setPlayedSongs((prev) => [...prev, songId]);
-  };
-
   const handleValidate = (mark: MarkEvent, valid: boolean) => {
     if (!socket || !game) return;
     socket.emit('bingo:validate-cell', {
@@ -71,18 +80,25 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
     setPendingMarks((prev) => prev.filter((m) => m !== mark));
   };
 
-  if (winner) {
+  const handleSendChallenge = (text: string) => {
+    if (!socket || !game || !text.trim()) return;
+    socket.emit('bingo:send-challenge', { gameId: game._id, text: text.trim() });
+    setChallengeSent(true);
+    setCustomChallenge('');
+    setTimeout(() => setChallengeSent(false), 2000);
+  };
+
+  // Full-screen victory only for BINGO
+  if (bingoWinner) {
     return (
       <div className="space-y-5 text-center animate-bounce-in">
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-gold-400 to-gold-500 shadow-xl">
           <PartyPopper className="text-white" size={40} />
         </div>
-        <h2 className="text-3xl font-extrabold text-gradient">
-          {winner.type === 'bingo' ? 'BINGO!' : 'LINIA!'}
-        </h2>
+        <h2 className="text-3xl font-extrabold text-gradient">BINGO!</h2>
         <Card className="ring-2 ring-gold-400 ring-offset-2">
           <p className="text-lg font-bold text-rosa-600">
-            Guanyador: <span className="text-gradient">{winner.teamName}</span>
+            Guanyador: <span className="text-gradient">{bingoWinner}</span>
           </p>
         </Card>
         <Button onClick={onFinish} variant="gold" className="w-full" size="lg">
@@ -121,8 +137,6 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
     );
   }
 
-  const availableSongs = songs.filter((s) => !playedSongs.includes(s._id));
-
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="text-center">
@@ -130,11 +144,19 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
           <Music className="text-white" size={24} />
         </div>
         <h2 className="text-xl font-extrabold text-gradient">Bingo Musical</h2>
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-lila-500 bg-lila-50 px-3 py-1 rounded-full mt-2">
-          <Sparkles size={14} />
-          {playedSongs.length}/{songs.length} cancons reproduides
-        </span>
       </div>
+
+      {lineWinner && (
+        <Card className="bg-gradient-to-r from-gold-50 to-gold-100 border-gold-300 ring-2 ring-gold-400 ring-offset-1">
+          <div className="flex items-center gap-2">
+            <Trophy className="text-gold-500 flex-shrink-0" size={20} />
+            <div>
+              <p className="font-extrabold text-gold-600">LINIA!</p>
+              <p className="text-sm text-gold-500 font-medium">Guanyada per: {lineWinner}</p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {pendingMarks.length > 0 && (
         <Card className="ring-2 ring-gold-400 ring-offset-2">
@@ -169,30 +191,49 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
         </Card>
       )}
 
+      {pendingMarks.length === 0 && !lineWinner && (
+        <Card className="text-center">
+          <p className="text-rosa-400 text-sm">Esperant marques dels jugadors...</p>
+          <p className="text-rosa-300 text-xs mt-1">Posa la playlist de Spotify!</p>
+        </Card>
+      )}
+
       <Card>
         <h3 className="font-bold text-rosa-600 mb-3 flex items-center gap-2">
-          <Play size={16} className="text-lila-500" />
-          Reprodueix una canco
+          <Zap size={16} className="text-gold-500" />
+          Mini-reptes
         </h3>
-        <div className="max-h-60 overflow-y-auto space-y-1">
-          {availableSongs.map((song) => (
+        {challengeSent && (
+          <div className="text-center text-green-600 font-bold text-sm mb-3 animate-bounce-in">
+            Enviat!
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {PRESET_CHALLENGES.map((text) => (
             <button
-              key={song._id}
-              onClick={() => handleNextSong(song._id)}
-              className="w-full text-left p-3 hover:bg-gradient-to-r hover:from-rosa-50 hover:to-lila-50 rounded-xl flex items-center gap-3 transition-colors active:scale-[0.98]"
+              key={text}
+              onClick={() => handleSendChallenge(text)}
+              className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-gold-50 to-rosa-50 border border-gold-200 text-rosa-600 font-medium hover:from-gold-100 hover:to-rosa-100 transition-colors active:scale-95"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-lila-100 to-rosa-100 flex items-center justify-center flex-shrink-0">
-                <Play size={12} className="text-lila-500 ml-0.5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-rosa-600 truncate">{song.title}</p>
-                <p className="text-xs text-rosa-400 truncate">{song.artist}</p>
-              </div>
+              {text}
             </button>
           ))}
-          {availableSongs.length === 0 && (
-            <p className="text-center text-rosa-300 py-4 text-sm">Totes les cancons reproduides!</p>
-          )}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={customChallenge}
+            onChange={(e) => setCustomChallenge(e.target.value)}
+            placeholder="Repte personalitzat..."
+            className="flex-1 text-sm"
+            onKeyDown={(e) => e.key === 'Enter' && handleSendChallenge(customChallenge)}
+          />
+          <button
+            onClick={() => handleSendChallenge(customChallenge)}
+            disabled={!customChallenge.trim()}
+            className="p-2.5 rounded-xl bg-gradient-to-br from-gold-400 to-gold-500 text-white disabled:opacity-50 transition-all active:scale-95"
+          >
+            <Send size={16} />
+          </button>
         </div>
       </Card>
 

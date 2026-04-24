@@ -31,8 +31,6 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
           });
         } else {
           game.bingoSongPool = [];
-          game.bingoCurrentSong = null;
-          game.bingoPlayedSongs = [];
           game.bingoWinners = { line: null, bingo: null };
           await BingoCard.deleteMany({ game: gameId });
           // Reset bingo scores for all teams

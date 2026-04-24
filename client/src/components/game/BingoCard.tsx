@@ -6,13 +6,11 @@ interface BingoCardProps {
 }
 
 export const BingoCard = ({ cells, onMarkCell }: BingoCardProps) => {
-  const grid: (BingoCell & { index: number })[][] = [[], [], []];
-
+  // Build lookup: "row-col" -> { cell, index }
+  const cellMap = new Map<string, { cell: BingoCell; index: number }>();
   cells.forEach((cell, i) => {
-    grid[cell.row].push({ ...cell, index: i });
+    cellMap.set(`${cell.row}-${cell.col}`, { cell, index: i });
   });
-
-  grid.forEach((row) => row.sort((a, b) => a.col - b.col));
 
   const getCellStyles = (cell: BingoCell) => {
     if (cell.validatedByAdmin) return 'bg-gradient-to-br from-green-400 to-green-500 text-white border-green-300 shadow-md shadow-green-200';
@@ -28,18 +26,31 @@ export const BingoCard = ({ cells, onMarkCell }: BingoCardProps) => {
   };
 
   return (
-    <div className="space-y-1.5">
-      {grid.map((row, rowIdx) => (
-        <div key={rowIdx} className="grid grid-cols-5 gap-1.5">
-          {row.map((cell) => (
-            <button
-              key={cell.index}
-              onClick={() => !cell.markedByTeam && !cell.validatedByAdmin && onMarkCell(cell.index)}
-              className={`aspect-square rounded-xl text-[10px] sm:text-xs font-semibold p-1 flex items-center justify-center border-2 transition-all duration-200 ${getCellStyles(cell)}`}
-            >
-              {getSongTitle(cell)}
-            </button>
-          ))}
+    <div className="space-y-1">
+      {[0, 1, 2].map((row) => (
+        <div key={row} className="grid grid-cols-9 gap-1">
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((col) => {
+            const entry = cellMap.get(`${row}-${col}`);
+            if (!entry) {
+              // Empty cell
+              return (
+                <div
+                  key={col}
+                  className="aspect-[3/4] rounded-lg bg-gray-100/50 border border-gray-200"
+                />
+              );
+            }
+            // Filled cell
+            return (
+              <button
+                key={col}
+                onClick={() => !entry.cell.markedByTeam && !entry.cell.validatedByAdmin && onMarkCell(entry.index)}
+                className={`aspect-[3/4] rounded-lg text-[7px] sm:text-[9px] font-semibold p-0.5 flex items-center justify-center border-2 transition-all duration-200 leading-tight ${getCellStyles(entry.cell)}`}
+              >
+                {getSongTitle(entry.cell)}
+              </button>
+            );
+          })}
         </div>
       ))}
     </div>
