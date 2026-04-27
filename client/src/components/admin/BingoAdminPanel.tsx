@@ -45,7 +45,16 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
     if (!socket) return;
 
     socket.on('bingo:cell-marked', (data: MarkEvent) => {
-      setPendingMarks((prev) => [...prev, data]);
+      setPendingMarks((prev) => {
+        const dup = prev.some(
+          (m) => m.teamId === data.teamId && m.cellIndex === data.cellIndex
+        );
+        return dup ? prev : [...prev, data];
+      });
+    });
+
+    socket.on('bingo:pending-marks', (data: { pending: MarkEvent[] }) => {
+      setPendingMarks(data.pending);
     });
 
     socket.on('bingo:winner', (data: { type: string; teamName: string }) => {
@@ -56,11 +65,20 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
       }
     });
 
+    const requestPending = () => {
+      if (game?._id) socket.emit('bingo:request-pending', { gameId: game._id });
+    };
+
+    requestPending();
+    socket.on('connect', requestPending);
+
     return () => {
       socket.off('bingo:cell-marked');
+      socket.off('bingo:pending-marks');
       socket.off('bingo:winner');
+      socket.off('connect', requestPending);
     };
-  }, [socket]);
+  }, [socket, game?._id]);
 
   const handleStart = () => {
     if (!socket || !game) return;

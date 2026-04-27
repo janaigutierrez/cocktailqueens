@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useSocket } from '../../context/SocketContext';
 import { useGame } from '../../context/GameContext';
 import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
 import { Card } from '../ui/Card';
 import { Eye, CheckCircle, Send } from 'lucide-react';
 
@@ -11,6 +10,7 @@ export const Prova3View = () => {
   const { game, myTeam } = useGame();
   const [guesses, setGuesses] = useState<Record<number, string>>({});
   const [cocktailNumbers, setCocktailNumbers] = useState<number[]>([]);
+  const [cocktailNames, setCocktailNames] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [results, setResults] = useState<{
     correctAnswers: { number: number; correctName: string }[];
@@ -20,8 +20,9 @@ export const Prova3View = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('prova3:open', (data: { cocktailNumbers: number[] }) => {
+    socket.on('prova3:open', (data: { cocktailNumbers: number[]; cocktailNames?: string[] }) => {
       setCocktailNumbers(data.cocktailNumbers);
+      setCocktailNames(data.cocktailNames || []);
     });
 
     socket.on('prova3:results', (data: any) => {
@@ -118,20 +119,38 @@ export const Prova3View = () => {
       </div>
 
       <div className="space-y-3 stagger">
-        {cocktailNumbers.map((num) => (
-          <Card key={num}>
-            <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 flex items-center justify-center text-white font-bold shrink-0">
-                {num}
-              </span>
-              <Input
-                value={guesses[num] || ''}
-                onChange={(e) => setGuesses((prev) => ({ ...prev, [num]: e.target.value }))}
-                placeholder="Nom del coctel..."
-              />
-            </div>
-          </Card>
-        ))}
+        {cocktailNumbers.map((num) => {
+          const usedElsewhere = new Set(
+            Object.entries(guesses)
+              .filter(([k, v]) => Number(k) !== num && v)
+              .map(([, v]) => v)
+          );
+          return (
+            <Card key={num}>
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-rosa-400 to-lila-500 flex items-center justify-center text-white font-bold shrink-0">
+                  {num}
+                </span>
+                <select
+                  value={guesses[num] || ''}
+                  onChange={(e) => setGuesses((prev) => ({ ...prev, [num]: e.target.value }))}
+                  className="flex-1 px-4 py-3 rounded-2xl border-2 border-rosa-200 focus:border-rosa-400 focus:outline-none bg-white text-rosa-700 font-medium"
+                >
+                  <option value="">Tria un coctel...</option>
+                  {cocktailNames.map((name) => (
+                    <option
+                      key={name}
+                      value={name}
+                      disabled={usedElsewhere.has(name)}
+                    >
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       <Button onClick={handleSubmit} className="w-full" size="lg">

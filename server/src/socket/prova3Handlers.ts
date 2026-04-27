@@ -1,7 +1,17 @@
 import { Server, Socket } from 'socket.io';
 import { Game } from '../models/Game';
 import { Team } from '../models/Team';
+import { Cocktail } from '../models/Cocktail';
 import { recalcTotalScore } from '../utils/scoring';
+
+const shuffle = <T>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 
 export const registerProva3Handlers = (io: Server, socket: Socket) => {
   // Admin sets up the 6 cocktails and opens guessing
@@ -21,7 +31,15 @@ export const registerProva3Handlers = (io: Server, socket: Socket) => {
         await game.save();
 
         const cocktailNumbers = cocktails.map((c) => c.number);
-        io.emit('prova3:open', { cocktailNumbers });
+
+        const allActive = await Cocktail.find({ isActive: true }).select('name');
+        const namesSet = new Set<string>([
+          ...cocktails.map((c) => c.correctName.trim()),
+          ...allActive.map((c) => c.name.trim()),
+        ]);
+        const cocktailNames = shuffle(Array.from(namesSet));
+
+        io.emit('prova3:open', { cocktailNumbers, cocktailNames });
       } catch (error) {
         socket.emit('error', { message: 'Failed to start prova3' });
       }

@@ -148,6 +148,37 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
     }
   );
 
+  // Admin (or reconnected admin) requests current pending marks
+  socket.on('bingo:request-pending', async (data: { gameId: string }) => {
+    try {
+      const { gameId } = data;
+      const cards = await BingoCard.find({ game: gameId }).populate('cells.song');
+      const teamIds = cards.map((c) => c.team);
+      const teams = await Team.find({ _id: { $in: teamIds } });
+      const teamMap = new Map(teams.map((t) => [t._id.toString(), t.name]));
+
+      const pending: { teamId: string; teamName: string; cellIndex: number; songTitle: string }[] = [];
+      for (const card of cards) {
+        const teamId = card.team.toString();
+        card.cells.forEach((cell, idx) => {
+          if (cell.markedByTeam && !cell.validatedByAdmin) {
+            const song = cell.song as any;
+            pending.push({
+              teamId,
+              teamName: teamMap.get(teamId) || 'Desconegut',
+              cellIndex: idx,
+              songTitle: song?.title || '?',
+            });
+          }
+        });
+      }
+
+      socket.emit('bingo:pending-marks', { pending });
+    } catch (error) {
+      socket.emit('error', { message: 'Failed to fetch pending marks' });
+    }
+  });
+
   // Admin sends a mini-challenge to all players
   socket.on('bingo:send-challenge', async (data: { gameId: string; text: string }) => {
     try {
