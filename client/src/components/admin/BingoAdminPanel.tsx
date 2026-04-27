@@ -19,12 +19,11 @@ interface MarkEvent {
   songTitle: string;
 }
 
-const PRESET_CHALLENGES = [
-  'Tothom beu un glop!',
-  "Selfie d'equip! Comparteix-lo!",
-  "L'ultim equip balla 10 segons!",
-  "Abraçada grupal d'equip!",
-  'Qui canta la seguent canco primer?',
+const PRESET_CHALLENGES: { label: string; text: string; prefill?: boolean }[] = [
+  { label: 'Karaoke flash!', text: "Karaoke flash! Primer que canti el seguent vers s'emporta un punt!" },
+  { label: 'Tothom beu un glop!', text: 'Tothom beu un glop!' },
+  { label: 'Brindis per la nuvia!', text: 'Brindis per la nuvia! Aixequeu els gots!' },
+  { label: 'Beu si...', text: 'Beu si ', prefill: true },
 ];
 
 export const BingoAdminPanel = ({ onFinish }: Props) => {
@@ -209,13 +208,13 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
           </div>
         )}
         <div className="flex flex-wrap gap-2 mb-3">
-          {PRESET_CHALLENGES.map((text) => (
+          {PRESET_CHALLENGES.map((c) => (
             <button
-              key={text}
-              onClick={() => handleSendChallenge(text)}
+              key={c.label}
+              onClick={() => (c.prefill ? setCustomChallenge(c.text) : handleSendChallenge(c.text))}
               className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-gold-50 to-rosa-50 border border-gold-200 text-rosa-600 font-medium hover:from-gold-100 hover:to-rosa-100 transition-colors active:scale-95"
             >
-              {text}
+              {c.label}
             </button>
           ))}
         </div>
