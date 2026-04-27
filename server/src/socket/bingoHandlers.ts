@@ -127,10 +127,6 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
             await game.save();
 
             const team = await Team.findById(teamId);
-            if (team) {
-              team.scores.bingo.lines += 1;
-              await team.save();
-            }
 
             io.emit('bingo:winner', {
               type: 'line',
@@ -214,10 +210,6 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
         await game.save();
 
         const team = await Team.findById(teamId);
-        if (team) {
-          team.scores.bingo.bingos += 1;
-          await team.save();
-        }
 
         io.emit('bingo:winner', {
           type: 'bingo',

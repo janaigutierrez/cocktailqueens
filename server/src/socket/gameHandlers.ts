@@ -47,9 +47,7 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
             team.scores.prova2.creativity +
             team.scores.prova2.taste +
             team.scores.prova2.presentation +
-            team.scores.prova3 +
-            team.scores.bingo.lines * 5 +
-            team.scores.bingo.bingos * 10;
+            team.scores.prova3;
           await team.save();
         }
       }

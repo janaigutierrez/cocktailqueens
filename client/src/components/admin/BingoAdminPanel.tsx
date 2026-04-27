@@ -20,7 +20,7 @@ interface MarkEvent {
 }
 
 const PRESET_CHALLENGES: { label: string; text: string; prefill?: boolean }[] = [
-  { label: 'Karaoke flash!', text: "Karaoke flash! Primer que canti el seguent vers s'emporta un punt!" },
+  { label: 'Karaoke flash!', text: 'Karaoke flash! Primer que canti el seguent vers ', prefill: true },
   { label: 'Tothom beu un glop!', text: 'Tothom beu un glop!' },
   { label: 'Brindis per la nuvia!', text: 'Brindis per la nuvia! Aixequeu els gots!' },
   { label: 'Beu si...', text: 'Beu si ', prefill: true },
