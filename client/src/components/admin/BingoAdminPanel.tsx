@@ -57,14 +57,6 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
       setPendingMarks(data.pending);
     });
 
-    socket.on('bingo:cell-unmarked', (data: { teamId: string; cellIndex: number }) => {
-      setPendingMarks((prev) =>
-        prev.filter(
-          (m) => !(m.teamId === data.teamId && m.cellIndex === data.cellIndex)
-        )
-      );
-    });
-
     socket.on('bingo:winner', (data: { type: string; teamName: string }) => {
       if (data.type === 'line') {
         setLineWinner(data.teamName);
@@ -83,7 +75,6 @@ export const BingoAdminPanel = ({ onFinish }: Props) => {
     return () => {
       socket.off('bingo:cell-marked');
       socket.off('bingo:pending-marks');
-      socket.off('bingo:cell-unmarked');
       socket.off('bingo:winner');
       socket.off('connect', requestPending);
     };

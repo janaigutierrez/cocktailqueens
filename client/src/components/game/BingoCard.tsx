@@ -51,7 +51,7 @@ export const BingoCard = ({ cells, onMarkCell }: BingoCardProps) => {
               <button
                 key={col}
                 onClick={() => {
-                  if (entry.cell.validatedByAdmin) return;
+                  if (entry.cell.markedByTeam || entry.cell.validatedByAdmin) return;
                   if (blocked) return;
                   onMarkCell(entry.index);
                 }}

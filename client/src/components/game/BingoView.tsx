@@ -37,15 +37,6 @@ export const BingoView = () => {
       }
     );
 
-    socket.on('bingo:cell-unmarked', (data: { teamId: string; cellIndex: number }) => {
-      if (data.teamId !== myTeam?._id) return;
-      setCells((prev) =>
-        prev.map((cell, i) =>
-          i === data.cellIndex ? { ...cell, markedByTeam: false } : cell
-        )
-      );
-    });
-
     socket.on('bingo:winner', (data: { type: string; teamName: string }) => {
       if (data.type === 'line') {
         setLineWinner(data.teamName);
@@ -69,7 +60,6 @@ export const BingoView = () => {
     return () => {
       socket.off('bingo:card');
       socket.off('bingo:cell-validated');
-      socket.off('bingo:cell-unmarked');
       socket.off('bingo:winner');
       socket.off('bingo:challenge');
       socket.off('connect', requestCard);
@@ -102,26 +92,11 @@ export const BingoView = () => {
     const cell = cells[cellIndex];
     if (!cell) return;
 
-    // Already validated → locked, no-op
-    if (cell.validatedByAdmin) return;
-
-    // Pending → unmark
-    if (cell.markedByTeam) {
-      setCells((prev) =>
-        prev.map((c, i) => (i === cellIndex ? { ...c, markedByTeam: false } : c))
-      );
-      socket.emit('bingo:unmark-cell', {
-        teamId: myTeam._id,
-        gameId: game._id,
-        cellIndex,
-      });
-      return;
-    }
+    // Already pending or validated → no-op
+    if (cell.markedByTeam || cell.validatedByAdmin) return;
 
     // Block if another cell is already pending
-    const hasOtherPending = cells.some(
-      (c, i) => i !== cellIndex && c.markedByTeam && !c.validatedByAdmin
-    );
+    const hasOtherPending = cells.some((c) => c.markedByTeam && !c.validatedByAdmin);
     if (hasOtherPending) return;
 
     setCells((prev) =>

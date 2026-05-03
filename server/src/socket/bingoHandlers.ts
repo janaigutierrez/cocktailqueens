@@ -90,30 +90,6 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
     }
   );
 
-  // Team unmarks a pending cell (before admin validates)
-  socket.on(
-    'bingo:unmark-cell',
-    async (data: { gameId: string; teamId: string; cellIndex: number }) => {
-      try {
-        const { gameId, teamId, cellIndex } = data;
-        const card = await BingoCard.findOne({ game: gameId, team: teamId });
-        if (!card || !card.cells[cellIndex]) return;
-
-        // Only allow unmarking if not yet validated
-        if (card.cells[cellIndex].validatedByAdmin) return;
-        if (!card.cells[cellIndex].markedByTeam) return;
-
-        card.cells[cellIndex].markedByTeam = false;
-        await card.save();
-
-        // Notify admin to remove from pending list
-        io.emit('bingo:cell-unmarked', { teamId, cellIndex });
-      } catch (error) {
-        socket.emit('error', { message: 'Failed to unmark cell' });
-      }
-    }
-  );
-
   // Team requests its current bingo card (used on mount/reconnect for state recovery)
   socket.on(
     'bingo:request-card',
