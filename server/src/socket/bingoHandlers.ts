@@ -46,7 +46,7 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
     }
   });
 
-  // Team marks a cell
+  // Team marks a cell - only allowed if no other pending cell exists
   socket.on(
     'bingo:mark-cell',
     async (data: { gameId: string; teamId: string; cellIndex: number }) => {
@@ -56,6 +56,20 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
           'cells.song'
         );
         if (!card || !card.cells[cellIndex]) return;
+
+        // Already pending or validated → no-op
+        if (card.cells[cellIndex].markedByTeam) return;
+
+        // Enforce only one pending cell per team at a time
+        const hasOtherPending = card.cells.some(
+          (c) => c.markedByTeam && !c.validatedByAdmin
+        );
+        if (hasOtherPending) {
+          socket.emit('error', {
+            message: 'Ja tens una casella pendent de validacio',
+          });
+          return;
+        }
 
         card.cells[cellIndex].markedByTeam = true;
         await card.save();
@@ -76,7 +90,47 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
     }
   );
 
-  // Admin validates a cell
+  // Team unmarks a pending cell (before admin validates)
+  socket.on(
+    'bingo:unmark-cell',
+    async (data: { gameId: string; teamId: string; cellIndex: number }) => {
+      try {
+        const { gameId, teamId, cellIndex } = data;
+        const card = await BingoCard.findOne({ game: gameId, team: teamId });
+        if (!card || !card.cells[cellIndex]) return;
+
+        // Only allow unmarking if not yet validated
+        if (card.cells[cellIndex].validatedByAdmin) return;
+        if (!card.cells[cellIndex].markedByTeam) return;
+
+        card.cells[cellIndex].markedByTeam = false;
+        await card.save();
+
+        // Notify admin to remove from pending list
+        io.emit('bingo:cell-unmarked', { teamId, cellIndex });
+      } catch (error) {
+        socket.emit('error', { message: 'Failed to unmark cell' });
+      }
+    }
+  );
+
+  // Team requests its current bingo card (used on mount/reconnect for state recovery)
+  socket.on(
+    'bingo:request-card',
+    async (data: { gameId: string; teamId: string }) => {
+      try {
+        const { gameId, teamId } = data;
+        const card = await BingoCard.findOne({ game: gameId, team: teamId }).populate(
+          'cells.song'
+        );
+        if (card) socket.emit('bingo:card', { card });
+      } catch (error) {
+        socket.emit('error', { message: 'Failed to fetch card' });
+      }
+    }
+  );
+
+  // Admin validates a cell - broadcast with teamId so client filters
   socket.on(
     'bingo:validate-cell',
     async (data: {
@@ -96,10 +150,8 @@ export const registerBingoHandlers = (io: Server, socket: Socket) => {
         }
         await card.save();
 
-        const team = await Team.findById(teamId);
-        if (team?.socketId) {
-          io.to(team.socketId).emit('bingo:cell-validated', { cellIndex, valid });
-        }
+        // Broadcast to all - clients filter by their own teamId
+        io.emit('bingo:cell-validated', { teamId, cellIndex, valid });
       } catch (error) {
         socket.emit('error', { message: 'Failed to validate cell' });
       }
