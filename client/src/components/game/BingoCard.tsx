@@ -1,3 +1,4 @@
+import { Hourglass } from 'lucide-react';
 import type { BingoCell, Song } from '../../types';
 
 interface BingoCardProps {
@@ -45,8 +46,14 @@ export const BingoCard = ({ cells, onMarkCell }: BingoCardProps) => {
               <button
                 key={col}
                 onClick={() => !entry.cell.markedByTeam && !entry.cell.validatedByAdmin && onMarkCell(entry.index)}
-                className={`aspect-[3/4] rounded-lg text-[7px] sm:text-[9px] font-semibold p-0.5 flex items-center justify-center border-2 transition-all duration-200 leading-tight ${getCellStyles(entry.cell)}`}
+                className={`relative aspect-[3/4] rounded-lg text-[7px] sm:text-[9px] font-semibold p-0.5 flex items-center justify-center border-2 transition-all duration-200 leading-tight ${getCellStyles(entry.cell)}`}
               >
+                {entry.cell.markedByTeam && !entry.cell.validatedByAdmin && (
+                  <Hourglass
+                    size={10}
+                    className="absolute top-0.5 right-0.5 text-white/90"
+                  />
+                )}
                 {getSongTitle(entry.cell)}
               </button>
             );
