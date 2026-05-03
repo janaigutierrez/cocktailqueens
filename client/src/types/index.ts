@@ -34,7 +34,9 @@ export interface Team {
 export type GameStatus =
   | 'lobby'
   | 'cocktails-prova1'
+  | 'cocktails-prova1-results'
   | 'cocktails-prova2'
+  | 'cocktails-prova2-results'
   | 'cocktails-prova3'
   | 'cocktails-results'
   | 'lobby-intermedi'

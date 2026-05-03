@@ -3,11 +3,65 @@ import { Game, GameMode, GameStatus } from '../models/Game';
 import { Team } from '../models/Team';
 import { BingoCard } from '../models/BingoCard';
 
+const PHASE_TRANSITIONS: Record<string, GameStatus> = {
+  'cocktails-prova1': 'cocktails-prova1-results',
+  'cocktails-prova1-results': 'cocktails-prova2',
+  'cocktails-prova2': 'cocktails-prova2-results',
+  'cocktails-prova2-results': 'cocktails-prova3',
+  'cocktails-prova3': 'cocktails-results',
+};
+
+const INTERIM_AUTO_ADVANCE_MS = 10_000;
+const interimTimers = new Map<string, NodeJS.Timeout>();
+
+const isInterimStatus = (status: GameStatus) =>
+  status === 'cocktails-prova1-results' || status === 'cocktails-prova2-results';
+
+const cancelInterimTimer = (gameId: string) => {
+  const t = interimTimers.get(gameId);
+  if (t) {
+    clearTimeout(t);
+    interimTimers.delete(gameId);
+  }
+};
+
+async function advancePhase(io: Server, gameId: string) {
+  const game = await Game.findById(gameId);
+  if (!game) return;
+
+  const nextStatus = PHASE_TRANSITIONS[game.status];
+  if (!nextStatus) return;
+
+  game.status = nextStatus;
+  await game.save();
+  io.emit('game:phase-change', { status: game.status, currentMode: game.currentMode });
+
+  if (isInterimStatus(nextStatus)) {
+    cancelInterimTimer(gameId);
+
+    const timer = setTimeout(async () => {
+      try {
+        // Verify the game still exists and is still in the interim state
+        const fresh = await Game.findById(gameId);
+        if (!fresh || fresh.status !== nextStatus) return;
+        await advancePhase(io, gameId);
+      } catch {
+        // ignore
+      } finally {
+        interimTimers.delete(gameId);
+      }
+    }, INTERIM_AUTO_ADVANCE_MS);
+
+    interimTimers.set(gameId, timer);
+  }
+}
+
 export const registerGameHandlers = (io: Server, socket: Socket) => {
   // Admin selects which game mode to play
   socket.on('game:select-mode', async (data: { gameId: string; mode: GameMode }) => {
     try {
       const { gameId, mode } = data;
+      cancelInterimTimer(gameId);
       const game = await Game.findById(gameId);
       if (!game) return;
 
@@ -63,22 +117,7 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
   // Admin advances to next phase within current mode
   socket.on('game:advance', async (data: { gameId: string }) => {
     try {
-      const { gameId } = data;
-      const game = await Game.findById(gameId);
-      if (!game) return;
-
-      const transitions: Record<string, GameStatus> = {
-        'cocktails-prova1': 'cocktails-prova2',
-        'cocktails-prova2': 'cocktails-prova3',
-        'cocktails-prova3': 'cocktails-results',
-      };
-
-      const nextStatus = transitions[game.status];
-      if (nextStatus) {
-        game.status = nextStatus;
-        await game.save();
-        io.emit('game:phase-change', { status: game.status, currentMode: game.currentMode });
-      }
+      await advancePhase(io, data.gameId);
     } catch (error) {
       socket.emit('error', { message: 'Failed to advance' });
     }
@@ -88,6 +127,7 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
   socket.on('game:back-to-lobby', async (data: { gameId: string }) => {
     try {
       const { gameId } = data;
+      cancelInterimTimer(gameId);
       const game = await Game.findById(gameId);
       if (!game || !game.currentMode) return;
 
@@ -113,6 +153,7 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
   socket.on('game:finish', async (data: { gameId: string }) => {
     try {
       const { gameId } = data;
+      cancelInterimTimer(gameId);
       const game = await Game.findById(gameId);
       if (!game) return;
 
@@ -135,6 +176,7 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
   socket.on('game:reset', async (data: { gameId: string }) => {
     try {
       const { gameId } = data;
+      cancelInterimTimer(gameId);
 
       // Clean up old data
       await Team.deleteMany({ game: gameId });

@@ -10,7 +10,9 @@ import { Wine, Music } from 'lucide-react';
 
 const statusLabels: Record<string, string> = {
   'cocktails-prova1': 'Prova 1',
+  'cocktails-prova1-results': 'Ranking',
   'cocktails-prova2': 'Prova 2',
+  'cocktails-prova2-results': 'Ranking',
   'cocktails-prova3': 'Prova 3',
   'cocktails-results': 'Resultats',
   'bingo': 'Bingo Musical',
@@ -52,6 +54,9 @@ export const GamePage = () => {
         return <Prova2View />;
       case 'cocktails-prova3':
         return <Prova3View />;
+      case 'cocktails-prova1-results':
+      case 'cocktails-prova2-results':
+        return <RoundResults mode="interim" countdownSeconds={10} />;
       case 'cocktails-results':
         return <RoundResults mode="cocktails" />;
       case 'bingo':

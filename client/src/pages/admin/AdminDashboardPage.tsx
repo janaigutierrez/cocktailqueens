@@ -34,7 +34,9 @@ const statusLabels: Record<string, string> = {
   'lobby': 'Lobby',
   'lobby-intermedi': 'Lobby intermedi',
   'cocktails-prova1': 'Coctels - Prova 1',
+  'cocktails-prova1-results': 'Coctels - Ranking interim',
   'cocktails-prova2': 'Coctels - Prova 2',
+  'cocktails-prova2-results': 'Coctels - Ranking interim',
   'cocktails-prova3': 'Coctels - Prova 3',
   'cocktails-results': 'Coctels - Resultats',
   'bingo': 'Bingo Musical',
@@ -240,6 +242,15 @@ export const AdminDashboardPage = () => {
         return <Prova2AdminPanel onAdvance={handleAdvance} />;
       case 'cocktails-prova3':
         return <Prova3AdminPanel onAdvance={handleAdvance} />;
+      case 'cocktails-prova1-results':
+      case 'cocktails-prova2-results':
+        return (
+          <Card className="text-center animate-fade-in">
+            <Trophy className="mx-auto text-gold-500 mb-2" size={36} />
+            <h2 className="text-xl font-bold text-rosa-600">Mostrant ranking</h2>
+            <p className="text-sm text-rosa-400 mt-1">Avancant a la seguent prova en breu...</p>
+          </Card>
+        );
       case 'cocktails-results':
         return (
           <div className="space-y-4 animate-fade-in">

@@ -3,7 +3,9 @@ import mongoose, { Schema, Document } from 'mongoose';
 export type GameStatus =
   | 'lobby'
   | 'cocktails-prova1'
+  | 'cocktails-prova1-results'
   | 'cocktails-prova2'
+  | 'cocktails-prova2-results'
   | 'cocktails-prova3'
   | 'cocktails-results'
   | 'lobby-intermedi'
@@ -56,7 +58,9 @@ const gameSchema = new Schema<IGame>(
       enum: [
         'lobby',
         'cocktails-prova1',
+        'cocktails-prova1-results',
         'cocktails-prova2',
+        'cocktails-prova2-results',
         'cocktails-prova3',
         'cocktails-results',
         'lobby-intermedi',
