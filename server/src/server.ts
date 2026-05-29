@@ -11,6 +11,7 @@ import adminRoutes from './routes/admin';
 import cocktailRoutes from './routes/cocktails';
 import songRoutes from './routes/songs';
 import gameRoutes from './routes/game';
+import bingoRoutes from './routes/bingo';
 import { initializeSocket } from './socket';
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/cocktails', cocktailRoutes);
 app.use('/api/songs', songRoutes);
 app.use('/api/game', gameRoutes);
+app.use('/api/bingo', bingoRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

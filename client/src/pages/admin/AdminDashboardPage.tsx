@@ -28,6 +28,7 @@ import {
   UserX,
   ChevronDown,
   ChevronUp,
+  Printer,
 } from 'lucide-react';
 
 const statusLabels: Record<string, string> = {
@@ -323,6 +324,9 @@ export const AdminDashboardPage = () => {
             </Link>
             <Link to="/admin/songs" className="p-2.5 hover:bg-lila-100 rounded-xl transition-colors" title="Cancons">
               <Music size={20} className="text-lila-500" />
+            </Link>
+            <Link to="/admin/bingo/imprimir" className="p-2.5 hover:bg-gold-100 rounded-xl transition-colors" title="Cartons imprimibles">
+              <Printer size={20} className="text-gold-500" />
             </Link>
             <button onClick={handleLogout} className="p-2.5 hover:bg-red-50 rounded-xl transition-colors" title="Sortir">
               <LogOut size={20} className="text-red-400" />

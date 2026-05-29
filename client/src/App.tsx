@@ -9,6 +9,7 @@ import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminCocktailsPage } from './pages/admin/AdminCocktailsPage';
 import { AdminSongsPage } from './pages/admin/AdminSongsPage';
+import { AdminBingoPrintPage } from './pages/admin/AdminBingoPrintPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
             <Route path="/admin/cocktails" element={<AdminCocktailsPage />} />
             <Route path="/admin/songs" element={<AdminSongsPage />} />
+            <Route path="/admin/bingo/imprimir" element={<AdminBingoPrintPage />} />
           </Routes>
         </GameProvider>
       </SocketProvider>
