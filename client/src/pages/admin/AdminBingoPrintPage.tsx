@@ -114,27 +114,48 @@ export const AdminBingoPrintPage = () => {
           color: #9ca3af;
         }
 
+        .printable-page {
+          display: flex;
+          flex-direction: column;
+        }
+
         @media screen {
-          .printable-card {
-            max-width: 148mm;
+          .printable-page {
+            max-width: 210mm;
             margin: 0 auto 8mm;
+          }
+          .printable-card {
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border-radius: 4mm;
+            margin-bottom: 4mm;
           }
         }
 
         @media print {
-          @page { size: A5; margin: 0; }
-          body { background: white !important; }
+          @page { size: A4 portrait; margin: 0; }
+          html, body { background: white !important; margin: 0; padding: 0; }
           .no-print { display: none !important; }
-          .printable-card {
-            width: 148mm;
-            height: 210mm;
+          .printable-page {
+            width: 210mm;
+            height: 297mm;
             page-break-after: always;
+            break-after: page;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .printable-page:last-child {
+            page-break-after: auto;
+            break-after: auto;
+          }
+          .printable-card {
+            width: 210mm;
+            height: 148.5mm;
             box-shadow: none;
             border-radius: 0;
+            margin: 0;
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
-          .printable-card:last-child { page-break-after: auto; }
         }
       `}</style>
 
@@ -164,7 +185,7 @@ export const AdminBingoPrintPage = () => {
                 onChange={(e) => setCount(Math.max(1, Math.min(100, Number(e.target.value) || 1)))}
                 className="w-full px-4 py-3 rounded-2xl border-2 border-rosa-200 focus:border-rosa-400 focus:outline-none bg-white text-rosa-700 font-medium"
               />
-              <p className="text-xs text-rosa-400 mt-1">Cada carto ocupa un full A5 al imprimir.</p>
+              <p className="text-xs text-rosa-400 mt-1">2 cartons (A5) per pagina A4. Al dialeg d'imprimir, desmarca "Capcaleres i peus de pagina" / "Headers and footers" per veure el full net.</p>
             </div>
             <div className="flex gap-2">
               <Button onClick={handleGenerate} disabled={loading} className="flex-1">
@@ -192,16 +213,23 @@ export const AdminBingoPrintPage = () => {
           </p>
         )}
 
-        {cards.map((cells, i) => (
-          <div key={i} className="printable-card">
-            <div className="printable-header">
-              <div className="printable-title">Bingo Musical</div>
-              <div className="printable-subtitle">Carto #{i + 1}</div>
-            </div>
-            <CellGrid cells={cells} />
-            <div className="printable-footer">
-              Marca les cancons que sonin. 5 en linia = LINIA. Tot el carto = BINGO!
-            </div>
+        {Array.from({ length: Math.ceil(cards.length / 2) }).map((_, pageIdx) => (
+          <div key={pageIdx} className="printable-page">
+            {cards.slice(pageIdx * 2, pageIdx * 2 + 2).map((cells, slot) => {
+              const i = pageIdx * 2 + slot;
+              return (
+                <div key={i} className="printable-card">
+                  <div className="printable-header">
+                    <div className="printable-title">Bingo Musical</div>
+                    <div className="printable-subtitle">Carto #{i + 1}</div>
+                  </div>
+                  <CellGrid cells={cells} />
+                  <div className="printable-footer">
+                    Marca les cancons que sonin. 5 en linia = LINIA. Tot el carto = BINGO!
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ))}
       </main>
